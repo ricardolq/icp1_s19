@@ -22,44 +22,43 @@
  * SOFTWARE.
  */
 
-#include <sys/socket.h>
-#include <netdb.h>
-#include <ifaddrs.h>
-#include <stdio.h>
-#include <stdlib.h>
+#if defined(_WIN32)
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+#include <winsock2.h>
+#include <ws2tcpip.h>
+//pragma ignored by mingw, linking setup required
+#pragma comment(lib, "ws2_32.lib")
 
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <errno.h>
+
+#endif
+
+#include <stdio.h>
 
 int main() {
 
-    struct ifaddrs *addresses;
-
-    if (getifaddrs(&addresses) == -1) {
-        printf("getifaddrs call failed\n");
-        return -1;
+#if defined(_WIN32)
+    WSADATA d;
+    if (WSAStartup(MAKEWORD(2, 2), &d)) {
+        fprintf(stderr, "Failed to initialize.\n");
+        return 1;
     }
+#endif
 
-    struct ifaddrs *address = addresses;
-    while(address) {
-        if (address->ifa_addr == NULL) { 
-            address = address->ifa_next;
-            continue;
-        }
-        int family = address->ifa_addr->sa_family;
-        if (family == AF_INET || family == AF_INET6) {
+    printf("Ready to use socket API.\n");
 
-            printf("%s\t", address->ifa_name);
-            printf("%s\t", family == AF_INET ? "IPv4" : "IPv6");
+#if defined(_WIN32)
+    WSACleanup();
+#endif
 
-            char ap[100];
-            const int family_size = family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6);
-            getnameinfo(address->ifa_addr,family_size, ap, sizeof(ap), 0, 0, NI_NUMERICHOST);
-            printf("\t%s\n", ap);
-
-        }
-        address = address->ifa_next;
-    }
-
-
-    freeifaddrs(addresses);
     return 0;
 }

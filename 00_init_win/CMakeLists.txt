@@ -1,0 +1,1 @@
+add_executable(00_init_win 00_init_win.c)

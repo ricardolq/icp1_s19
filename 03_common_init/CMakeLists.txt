@@ -1,0 +1,1 @@
+add_executable(03_common_init 03_common_init.c)
