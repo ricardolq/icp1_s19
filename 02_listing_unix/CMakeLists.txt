@@ -1,1 +1,0 @@
-add_executable(02_listing_unix 02_listing_unix.c)
