@@ -13,9 +13,18 @@ void to_uppercase(char *str) {
     }
 }
 
+SOCKET server_fd;
+
+// Signal handler for SIGINT - control + c
+void handle_sigint(int sig) {
+   CLOSESOCKET(server_fd);
+   exit(0);
+}
+
 int main() {
+    signal(SIGINT, handle_sigint);
     INIT_SOCKETS();
-    SOCKET server_fd, new_socket;
+    SOCKET new_socket;
     struct addrinfo hints, *address;
     char buffer[BUFFER_SIZE] = {0};
 
@@ -55,26 +64,39 @@ int main() {
         // Accepting incoming connection
         struct sockaddr_in client_address;
         socklen_t addrlen;
-        new_socket = accept(server_fd, (struct sockaddr *)&client_address, &addrlen);
-        if (!ISVALIDSOCKET(new_socket)) {
-        fprintf(stderr, "accept failed: %d\n", GETSOCKETERRNO());
-        CLOSESOCKET(server_fd);
-        exit(EXIT_FAILURE);
+        while (1) {
+            new_socket = accept(server_fd, (struct sockaddr *)&client_address, &addrlen);
+            if (!ISVALIDSOCKET(new_socket)) {
+            fprintf(stderr, "accept failed: %d\n", GETSOCKETERRNO());
+            CLOSESOCKET(server_fd);
+            exit(EXIT_FAILURE);
+            }
+
+            pid_t pid = fork();
+            if (pid < 0) {
+            fprintf(stderr, "fork failed\n");
+            CLOSESOCKET(new_socket);
+            continue;
+            }
+
+            if (pid == 0) { // Child process
+                CLOSESOCKET(server_fd);
+
+                // Reading message from client
+                int valread = read(new_socket, buffer, BUFFER_SIZE);
+                printf("Received: %s\n", buffer);
+
+                // Converting message to uppercase
+                to_uppercase(buffer);
+
+                // Sending uppercase message back to client
+                send(new_socket, buffer, strlen(buffer), 0);
+                printf("Uppercase message sent: %s\n", buffer);
+                CLOSESOCKET(new_socket);
+                exit(0);
+            } else { // Parent process
+                CLOSESOCKET(new_socket);
+            }
         }
-
-        // Reading message from client
-        int valread = read(new_socket, buffer, BUFFER_SIZE);
-        printf("Received: %s\n", buffer);
-
-        // Converting message to uppercase
-        to_uppercase(buffer);
-
-        // Sending uppercase message back to client
-        send(new_socket, buffer, strlen(buffer), 0);
-        printf("Uppercase message sent: %s\n", buffer);
-
-        // Closing the socket
-        CLOSESOCKET(new_socket);
-        CLOSESOCKET(server_fd);
     return 0;
 }

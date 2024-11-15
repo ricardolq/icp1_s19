@@ -11,6 +11,7 @@ const char *words[] = {"apple", "banana", "cherry", "date", "elderberry"};
 #define WORD_COUNT (sizeof(words) / sizeof(words[0]))
 
 int main() {
+    INIT_SOCKETS();
     int sock = 0;
     char buffer[BUFFER_SIZE] = {0};
     struct addrinfo hints, *res;
@@ -33,6 +34,7 @@ int main() {
     }
 
     // Connect to the server
+    // We use same address info as the server just because we are connecting to the same machine
     if (connect(sock, res->ai_addr, res->ai_addrlen)) {
         fprintf(stderr, "Connection failed: %d\n", GETSOCKETERRNO());
         freeaddrinfo(res);

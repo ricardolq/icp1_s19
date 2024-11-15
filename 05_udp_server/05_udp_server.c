@@ -14,6 +14,7 @@ void to_uppercase(char *str) {
 }
 
 int main() {
+    INIT_SOCKETS();
     int server_fd;
     struct addrinfo hints, *address;
     char buffer[BUFFER_SIZE] = {0};

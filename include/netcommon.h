@@ -23,9 +23,30 @@
 #define CLOSESOCKET(s) closesocket(s)
 #define GETSOCKETERRNO() (WSAGetLastError())
 
+void startWinsock() {
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+}
+
+void stopWinsock() {
+    WSACleanup();
+}
+
+void socketsSetup() {
+    atexit(stopWinsock);
+    startWinsock();
+}
+#define INIT_SOCKETS() socketsSetup();
+
 #else
 #define ISVALIDSOCKET(s) ((s) >= 0)
 #define CLOSESOCKET(s) close(s)
 #define SOCKET int
 #define GETSOCKETERRNO() (errno)
+
+void socketsSetup() {
+    return;
+}
 #endif
+
+#define INIT_SOCKETS() socketsSetup();

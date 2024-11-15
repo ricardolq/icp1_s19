@@ -11,6 +11,7 @@ const char *words[] = {"apple", "banana", "cherry", "date", "elderberry"};
 #define WORD_COUNT (sizeof(words) / sizeof(words[0]))
 
 int main() {
+    INIT_SOCKETS();
     int sock = 0;
     char buffer[BUFFER_SIZE] = {0};
     struct addrinfo hints, *res;
