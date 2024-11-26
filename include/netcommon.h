@@ -4,6 +4,8 @@
 #endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <unistd.h>
+#include <signal.h>
 //pragma ignored by mingw, linking setup required
 #pragma comment(lib, "ws2_32.lib")
 
